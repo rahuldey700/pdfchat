@@ -49,7 +49,7 @@ class PineconeEngine(UploadEngine):
         if not openai_api_key:
             openai_api_key = os.getenv("OPENAI_API_KEY")
         self.pinecone = Pinecone(pinecone_api_key)
-        self.index = self.pinecone.Index(index_name)
+        self.pinecone_index = self.pinecone.Index(index_name)
         if not openai:
             openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.openai = openai
@@ -82,7 +82,7 @@ class PineconeEngine(UploadEngine):
         ]
         vectors = get_embeddings(texts, self.openai)
         for i in range(0, len(vectors), self.BATCH_SIZE):
-            self.index.upsert(
+            self.pinecone_index.upsert(
                 vectors=[
                     {
                         "id": str(i),
@@ -102,14 +102,14 @@ class PineconeEngine(UploadEngine):
     ):
         vector = get_embeddings([query], self.llm)[0]
         if filter:
-            return self.index.query(
+            return self.pinecone_index.query(
                 vector=vector,
                 top_k=top_k,
                 namespace=namespace,
                 include_metadata=True,
                 filter=filter
             )
-        return self.index.query(
+        return self.pinecone_index.query(
             vector=vector,
             top_k=top_k,
             namespace=namespace,

@@ -9,26 +9,32 @@ class UploadEngine(ABC):
     async def upload(
         self,
         file: io.BytesIO,
+        **kwargs,
     ) -> None:
-        await self._upload(file)
+        await self._upload(file, **kwargs)
 
     async def parse(
         self,
         file: io.BytesIO,
+        **kwargs,
     ) -> None:
-        await self._parse(file)
+        await self._parse(file, **kwargs)
 
     async def index(
         self,
         chunks: list[str],
+        namespace: str,
+        **kwargs,
     ) -> None:
-        await self._index(chunks)
+        await self._index(chunks, namespace, **kwargs)
 
     async def search(
         self,
         query: str,
+        namespace: str,
+        **kwargs,
     ) -> None:
-        await self._search(query)
+        await self._search(query, namespace, **kwargs)
 
     @abstractmethod
     async def _upload(self, file: io.BytesIO, **kwargs) -> None:

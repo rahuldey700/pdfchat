@@ -115,9 +115,11 @@ class PineconeEngine(UploadEngine):
             include_metadata=True
         )
     
-    def as_llama_index_vextor_store(self):
+    def as_llama_index_vextor_store(self, index: str, namespace: str):
         return PineconeVectorStore(
-            pinecone_index=self.index, text_key="text"
+            index_name=index, 
+            namespace=namespace,
+            text_key="text"
         )
 
 if __name__ == '__main__':

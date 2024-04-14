@@ -14,6 +14,7 @@ from pinecone import Pinecone
 from pdfchat.Chunker import SentenceChunker, PDFReaderUpdated
 from pdfchat.UploadEngine import UploadEngine
 from llama_index.vector_stores.pinecone import PineconeVectorStore
+import uuid
 
 def standardize_text(text):
     text = re.sub(r'[^\w\s]', '', text)
@@ -47,11 +48,11 @@ class PineconeEngine(UploadEngine):
         if not pinecone_api_key:
             pinecone_api_key = os.getenv("PINECONE_API_KEY")
         if not index_name:
-            index_name = os.getenv("PINECONE_INDEX_NAME")
+            self.index_name = os.getenv("PINECONE_INDEX_NAME")
         if not openai_api_key:
             openai_api_key = os.getenv("OPENAI_API_KEY")
         self.pinecone = Pinecone(pinecone_api_key)
-        self.pinecone_index = self.pinecone.Index(index_name)
+        self.pinecone_index = self.pinecone.Index(self.index_name)
         if not openai:
             openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.openai = openai
@@ -89,7 +90,7 @@ class PineconeEngine(UploadEngine):
             self.pinecone_index.upsert(
                 vectors=[
                     {
-                        "id": str(i),
+                        "id": str(uuid.uuid4()),
                         "values": vector,
                         "metadata": metadata
                     } for vector, metadata in zip(vectors[i:i+self.BATCH_SIZE], metadatas[i:i+self.BATCH_SIZE])
@@ -104,7 +105,7 @@ class PineconeEngine(UploadEngine):
         top_k: int = 5,
         filter: dict = None
     ):
-        vector = get_embeddings([query], self.llm)[0]
+        vector = get_embeddings([query], self.openai)[0]
         if filter:
             return self.pinecone_index.query(
                 vector=vector,
@@ -120,9 +121,9 @@ class PineconeEngine(UploadEngine):
             include_metadata=True
         )
     
-    def as_llama_index_vextor_store(self, index: str, namespace: str):
+    def as_llama_index_vextor_store(self, namespace: str):
         return PineconeVectorStore(
-            index_name=index, 
+            index_name=self.index_name,
             namespace=namespace,
             text_key="text"
         )

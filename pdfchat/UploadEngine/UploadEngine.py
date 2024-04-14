@@ -22,7 +22,7 @@ class UploadEngine(ABC):
 
     async def index(
         self,
-        chunks: list[str],
+        chunks: list[Chunk],
         namespace: str,
         **kwargs,
     ) -> None:

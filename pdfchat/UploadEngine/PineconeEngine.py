@@ -13,6 +13,7 @@ from pinecone import Pinecone
 
 from pdfchat.Chunker import SentenceChunker, PDFReaderUpdated
 from pdfchat.UploadEngine import UploadEngine
+from llama_index.vector_stores.pinecone import PineconeVectorStore
 
 def standardize_text(text):
     text = re.sub(r'[^\w\s]', '', text)
@@ -112,6 +113,11 @@ class PineconeEngine(UploadEngine):
             top_k=top_k,
             namespace=namespace,
             include_metadata=True
+        )
+    
+    def as_llama_index_vextor_store(self):
+        return PineconeVectorStore(
+            pinecone_index=self.index, text_key="text"
         )
 
 if __name__ == '__main__':

@@ -40,6 +40,7 @@ class PineconeEngine(UploadEngine):
         index_name: str = None,
         pinecone_api_key: str = None,
         openai_api_key: str = None,
+        openai: OpenAI = None
     ):
         if not pinecone_api_key:
             pinecone_api_key = os.getenv("PINECONE_API_KEY")

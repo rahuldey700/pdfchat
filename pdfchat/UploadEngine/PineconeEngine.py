@@ -67,7 +67,7 @@ class PineconeEngine(UploadEngine):
     ) -> None:
         reader = PDFReaderUpdated()
         documents = reader.load_data_bytesio(file)
-        return await SentenceChunker.chunk(documents=documents, text=None)
+        return await SentenceChunker().chunk(text=None, documents=documents)
 
     async def _index(
         self, 

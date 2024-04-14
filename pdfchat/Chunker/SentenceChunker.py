@@ -28,7 +28,7 @@ class SentenceChunker(Chunker):
         if text:
             documents = [Document(text=text)]
         nodes = self.sentence_splitter.get_nodes_from_documents(documents)
-        return [
+        _chunks = [
             Chunk(
                 text=node.text,
                 metadata={
@@ -41,6 +41,7 @@ class SentenceChunker(Chunker):
             ) 
             for i, node in enumerate(nodes)
         ]
+        return _chunks
 
 if __name__ == '__main__':
     sc = SentenceChunker(filename='test2.pdf')

@@ -35,6 +35,8 @@ def get_embeddings(texts, openai, batch_size, model="text-embedding-3-small"):
     return embeddings
 
 class PineconeEngine(UploadEngine):
+    BATCH_SIZE = 100
+
     def __init__(
         self,
         index_name: str = None,
@@ -53,7 +55,6 @@ class PineconeEngine(UploadEngine):
         if not openai:
             openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.openai = openai
-        super().__init__()
 
     async def _upload(
         self,
@@ -64,7 +65,7 @@ class PineconeEngine(UploadEngine):
     async def _parse(
         self, 
         file: BytesIO
-    ) -> None:
+    ) -> list[Chunk]:
         reader = PDFReaderUpdated()
         documents = reader.load_data_bytesio(file)
         return await SentenceChunker().chunk(text=None, documents=documents)

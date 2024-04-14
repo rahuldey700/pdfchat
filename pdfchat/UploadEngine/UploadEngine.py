@@ -16,9 +16,10 @@ class UploadEngine(ABC):
     async def parse(
         self,
         file: io.BytesIO,
+        filename: str,
         **kwargs,
     ) -> None:
-        return await self._parse(file, **kwargs)
+        return await self._parse(file, filename, **kwargs)
 
     async def index(
         self,
@@ -41,7 +42,7 @@ class UploadEngine(ABC):
         pass
 
     @abstractmethod
-    async def _parse(self, file: io.BytesIO, **kwargs) -> None:
+    async def _parse(self, file: io.BytesIO, filename: str, **kwargs) -> None:
         pass
 
     @abstractmethod

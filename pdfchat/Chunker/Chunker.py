@@ -11,7 +11,7 @@ class Chunker(ABC):
         self.filename = filename
 
     async def chunk(self, text, **kwargs):
-        await self._chunk(text, **kwargs)
+        return await self._chunk(text, **kwargs)
 
     @abstractmethod
     async def _chunk(self, text, **kwargs) -> List[Chunk]:

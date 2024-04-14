@@ -21,7 +21,7 @@ def standardize_text(text):
     text = text.lower()
     return text
 
-def get_embeddings(texts, openai, batch_size, model="text-embedding-3-small"):
+def get_embeddings(texts, openai, batch_size, model="text-embedding-ada-002"):
     texts = [standardize_text(text) for text in texts]
     embeddings = []
     for i in range(0, len(texts), batch_size):
@@ -64,11 +64,14 @@ class PineconeEngine(UploadEngine):
 
     async def _parse(
         self, 
-        file: BytesIO
+        file: BytesIO,
+        filename: str
     ) -> list[Chunk]:
         reader = PDFReaderUpdated()
         documents = reader.load_data_bytesio(file)
-        return await SentenceChunker().chunk(text=None, documents=documents)
+        return await SentenceChunker(
+            filename=filename
+        ).chunk(text=None, documents=documents)
 
     async def _index(
         self, 
@@ -81,7 +84,7 @@ class PineconeEngine(UploadEngine):
             {**metadata, "text": text}
             for text, metadata in zip(texts, metadatas)
         ]
-        vectors = get_embeddings(texts, self.openai)
+        vectors = get_embeddings(texts, self.openai, self.BATCH_SIZE)
         for i in range(0, len(vectors), self.BATCH_SIZE):
             self.pinecone_index.upsert(
                 vectors=[

@@ -13,6 +13,7 @@ class PDFReaderUpdated(PDFReader):
     def load_data_bytesio(
         self,
         file: BytesIO,
+        file_name: str | None = None,
         extra_info: Dict | None = None,
         fs: AbstractFileSystem | None = None,
     ) -> List[Document]:
@@ -29,7 +30,7 @@ class PDFReaderUpdated(PDFReader):
         docs = []
         if self.return_full_document:
             text = ""
-            metadata = {"file_name": file.name}
+            metadata = {"file_name": file_name}
             for page in range(num_pages):
                 page_text = pdf.pages[page].extract_text()
                 text += page_text
@@ -38,7 +39,7 @@ class PDFReaderUpdated(PDFReader):
             for page in range(num_pages):
                 page_text = pdf.pages[page].extract_text()
                 page_label = pdf.page_labels[page]
-                metadata = {"page_label": page_label, "file_name": file.name}
+                metadata = {"page_label": page_label, "file_name": file_name}
                 if extra_info is not None:
                     metadata.update(extra_info)
                 docs.append(Document(text=page_text, metadata=metadata))

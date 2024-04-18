@@ -6,7 +6,7 @@ from pdfchat.RetrievalEngine.RetrievalEngine import RetrievalEngine
 from pdfchat.UploadEngine import PineconeEngine
 
 
-class GetTools:
+class GetAgentOpenAI:
     def __init__(
         self,
         engine: PineconeEngine,
@@ -17,12 +17,12 @@ class GetTools:
         self.namespace = namespace
         self.top_k = top_k
         self.vectore_store = engine.as_llama_index_vextor_store(namespace=namespace)
-        self.retriever = self.vectore_store.as_retriever(similarity_top_k=top_k)
-        self.retriever = RetrievalEngine(vector_store=self.vectore_store).as_retriever()
+        self.retriever = RetrievalEngine(vector_store=self.vectore_store, top_k=self.top_k).as_retriever()
         self.index = RetrievalEngine(vector_store=self.vectore_store).as_index()
         self.index_query_eng = self.index.as_query_engine()
+        self.tools = None
 
-    def get_tools(self):
+    def _get_tools(self):
         self.individual_query_engine_tools = [QueryEngineTool(
                 query_engine=self.index_query_eng,
                 metadata=ToolMetadata(
@@ -54,5 +54,9 @@ class GetTools:
 
         return self.tools
     
-    def get_openai_agent(self, verbose: bool = True):
-        return OpenAIAgent.from_tools(self.tools, verbose=verbose)
+    def get_openai_agent(self, llm, sys_prompt: str = None, verbose: bool = False):
+        if sys_prompt is None:
+            sys_prompt = "Based on the given excerpts from a proposal document, answer the user questions.\n"
+        if self.tools is None:
+            self._get_tools()
+        return OpenAIAgent.from_tools(self.tools, llm=llm, verbose=verbose, sys_prompt=sys_prompt)

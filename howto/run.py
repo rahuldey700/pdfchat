@@ -6,6 +6,7 @@ from llama_index.core.response.pprint_utils import pprint_source_node
 from llama_index.llms.openai import OpenAI
 import time
 from pdfchat.Agents.AgentOpenAI import GetAgentOpenAI
+import pprint
 
 _prompt = """Based on the given excerpts from a document, answer the given question:
 -----------------------------------
@@ -18,7 +19,7 @@ Answer:"""
 engine = PineconeEngine()
 
 # read the pdf as a Bytesio object
-pdf = open("01.pdf", "rb")
+pdf = open("02.pdf", "rb")
 pdf = io.BytesIO(pdf.read())
 
 start = time.time()
@@ -59,5 +60,4 @@ agent = GetAgentOpenAI(engine=engine, namespace="somethingrandom.pdf", top_k=5).
 while True:
     query = input("Enter your query: ")
     res = agent.chat(query)
-    print(str(res))
-    print("\n\n")
+    print(res.__dict__['sources'])

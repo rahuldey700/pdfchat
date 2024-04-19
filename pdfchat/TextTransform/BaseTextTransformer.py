@@ -16,3 +16,9 @@ class BaseTextTransformer:
 
     def transform(self, text: str) -> str:
         return self._transform(text)
+    
+    async def _async_transform(self, text: str) -> str:
+        return text
+
+    async def async_transform(self, text: str) -> str:
+        return await self._async_transform(text)

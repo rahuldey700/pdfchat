@@ -36,6 +36,13 @@ class UploadEngine(ABC):
         **kwargs,
     ) -> None:
         return await self._search(query, namespace, **kwargs)
+    
+    async def transform(
+        self,
+        texts: list[str],
+        **kwargs,
+    ) -> str:
+        return await self._transform(texts, **kwargs)
 
     @abstractmethod
     async def _upload(self, file: io.BytesIO, **kwargs) -> None:
@@ -51,4 +58,8 @@ class UploadEngine(ABC):
 
     @abstractmethod
     async def _search(self, query: str, namespace: str, **kwargs):
+        pass
+
+    @abstractmethod
+    async def _transform(self, texts: list[str], **kwargs) -> str:
         pass

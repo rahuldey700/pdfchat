@@ -1,20 +1,24 @@
-
 import os
+
 from dotenv import load_dotenv
+
 from pdfchat.Chunker import Chunk
+from pdfchat.TextTransform import BaseTextTransformer
 
 load_dotenv()
 
+import asyncio
 import re
+import uuid
 from io import BytesIO
 
+from llama_index.vector_stores.pinecone import PineconeVectorStore
 from openai import OpenAI
 from pinecone import Pinecone
 
-from pdfchat.Chunker import SentenceChunker, PDFReaderUpdated
+from pdfchat.Chunker import PDFReaderUpdated, SentenceChunker
 from pdfchat.UploadEngine import UploadEngine
-from llama_index.vector_stores.pinecone import PineconeVectorStore
-import uuid
+
 
 def standardize_text(text):
     text = re.sub(r'[^\w\s]', '', text)
@@ -40,10 +44,11 @@ class PineconeEngine(UploadEngine):
 
     def __init__(
         self,
+        texttransformer: BaseTextTransformer = BaseTextTransformer(),
         index_name: str = None,
         pinecone_api_key: str = None,
         openai_api_key: str = None,
-        openai: OpenAI = None
+        openai: OpenAI = None,
     ):
         if not pinecone_api_key:
             pinecone_api_key = os.getenv("PINECONE_API_KEY")
@@ -56,6 +61,8 @@ class PineconeEngine(UploadEngine):
         if not openai:
             openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.openai = openai
+        self.transformed_texts = []
+        self.texttransformer = texttransformer
 
     async def _upload(
         self,
@@ -73,17 +80,33 @@ class PineconeEngine(UploadEngine):
         return await SentenceChunker(
             filename=filename
         ).chunk(text=None, documents=documents)
+    
+    async def _transform(
+        self,
+        texts: list[str]
+    ) -> list[str]:
+        tasks = []
+        for text in texts:
+            tasks.append(
+                asyncio.create_task(
+                    self.texttransformer.async_transform(text)
+                )
+            )
+        res = await asyncio.gather(*tasks)
+        self.transformed_texts = res
+        return res
 
     async def _index(
         self, 
         chunks: list[Chunk],
         namespace: str
     ) -> None:
-        texts = [chunk.text for chunk in chunks]
+        texts = self.transformed_texts
+        chunk_texts = [chunk.text for chunk in chunks]
         metadatas = [chunk.metadata for chunk in chunks]
         metadatas = [
             {**metadata, "text": text}
-            for text, metadata in zip(texts, metadatas)
+            for text, metadata in zip(chunk_texts, metadatas)
         ]
         vectors = get_embeddings(texts, self.openai, self.BATCH_SIZE)
         for i in range(0, len(vectors), self.BATCH_SIZE):

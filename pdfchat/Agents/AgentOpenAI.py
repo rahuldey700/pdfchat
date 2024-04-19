@@ -45,7 +45,7 @@ class GetAgentOpenAI:
                 name="sub_question_query_engine",
                 description=(
                     "useful for when you want to answer queries that require analyzing"
-                    " multiple multiple questions that are related to each other."
+                    " multiple questions that are related to each other."
                 ),
             ),
         )
